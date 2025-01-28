@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, TextInput, Pressable } from 'react-native';
+import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, TextInput, Pressable, useWindowDimensions } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -17,21 +17,116 @@ const units = [3, 2, 1]
 export default function HomeScreen() {
     const [selectedGrade, setSelectedGrade] = useState("placeholder");
     const [selectedUnits, setSelectedUnits] = useState("placeholder");
-
+    const [semesters, setSemesters] = useState([]);
+    const [subject, setSubject] = useState()
+    const { height } = useWindowDimensions()
+    console.log(semesters)
     return (
-        <SafeAreaView >
+        <SafeAreaView style={{
+            // minHeight:height, 
+            flex: 1,
+        }} >
             <View style={styles.header}>
                 <ThemedText style={styles.headerText} type="subtitle">GPA Calculator</ThemedText>
             </View>
             <ScrollView style={styles.body}>
+                <TextInput placeholder='Course Name'
+                    value={subject}
+                    onChangeText={(e) => setSubject(subject)}
+                    style={styles.course} />
+                {
+                    semesters.map((item, index) => {
+                        return (
+                            <>
+                                <View style={styles.semester}>
+                                    <View style={styles.circleBtn}><Text>-</Text></View>
+                                    <ThemedText type="defaultSemiBold">Semester {item.id}</ThemedText>
+                                </View>
+                                {/* <TextInput placeholder='Course Name'
+                                    value={subject.course}
+                                    // onChangeText={(e) =>subject.course = e}
+                                    onChangeText={(e) => [...semesters][index].subjects[subjectindex].course = e}
+
+                                    style={styles.course} /> */}
+                                {
+                                    item.subjects.map((subject, subjectindex) => {
+
+                                        return (
+                                            <View style={styles.inputContainer}>
+                                                <View style={styles.input}>
+                                                    <TextInput placeholder='Course Name'
+                                                        value={subject.course}
+                                                        // onChangeText={(e) =>setSemesters([...semesters,{ id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])}
+                                                        // onChangeText={(e) => [...semesters][index].subjects[subjectindex].course = e}
+                                                        // onChangeText={(e) => subject.course = e}
+                                                        onChangeText={(e) =>setSemesters([...semesters,{ id: index, subjects: [{ course: e, grade: '', unit: '' }] }])}
+
+                                                        style={styles.course} />
+                                                    <View style={styles.gradeUnitContainer}>
+                                                        <Picker
+                                                            selectedValue={selectedGrade}
+                                                            // onValueChange={(itemValue) => [...semesters][index].subjects[subjectindex].grade = itemValue}
+                                                            onValueChange={(itemValue) => [...semesters][index].subjects[subjectindex].grade = itemValue}
+
+                                                            style={[styles.picker, styles.gradePicker]}
+                                                        >
+                                                            <Picker.Item
+                                                                label="Grade"
+                                                                enabled={false}
+                                                                value="" />
+                                                            {grade.map((gradeOption) => (
+                                                                <Picker.Item key={gradeOption.mark} label={gradeOption.mark} value={gradeOption.mark} />
+                                                            ))}
+                                                        </Picker>
+
+                                                        <Picker
+                                                            selectedValue={selectedUnits}
+                                                            onValueChange={(itemValue) => setSelectedUnits(itemValue)}
+                                                            style={styles.picker}
+                                                        >
+                                                            <Picker.Item
+                                                                label="Units"
+                                                                enabled={false}
+                                                                value="placeholder" />
+                                                            {units.map((unit) => (
+                                                                <Picker.Item key={unit} label={`${unit}`} value={unit} />
+                                                            ))}
+                                                        </Picker>
+                                                    </View>
+                                                </View>
+                                                <Pressable onPress={() => {
+                                                    console.log([...semesters][index].subjects[subjectindex].course, 'course')
+                                                    console.log(subject.course, 'cour')
+                                                }} style={styles.circleBtn}>
+                                                    <Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>x</Text>
+                                                </Pressable>
+                                            </View>
+                                        )
+                                    })
+                                }
 
 
+                                <View style={styles.addCourseContainer}>
+                                    <View style={styles.circleBtn}><Text>+</Text></View><Text>Add Course</Text>
+                                </View>
+
+
+                            </>
+                        )
+                    })
+                }
                 <View style={styles.semester}>
+                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>+</Text></View>
+                    <Pressable onPress={() => setSemesters([...semesters, { id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])}>
+                        <ThemedText type="defaultSemiBold">Add Semester</ThemedText>
+                    </Pressable>
+                </View>
+                {/* <View style={styles.semester}>
                     <View style={styles.circleBtn}><Text>-</Text></View>
                     <ThemedText type="defaultSemiBold">Semester 1</ThemedText>
-                </View>
+                </View> */}
 
-                <View style={styles.inputContainer}>
+                {/* <View style={styles.inputContainer}>
                     <View style={styles.input}>
                         <TextInput placeholder='Course Name' style={styles.course} />
                         <View style={styles.gradeUnitContainer}>
@@ -65,7 +160,7 @@ export default function HomeScreen() {
                         </View>
                     </View>
                     <View style={styles.circleBtn}>
-                        <Text>x</Text>
+                        <Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>x</Text>
                     </View>
                 </View>
 
@@ -74,34 +169,24 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.semester}>
-                    <View style={styles.circleBtn}><Text>+</Text></View>
+                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>+</Text></View>
                     <ThemedText type="defaultSemiBold">Add Semester</ThemedText>
-                </View>
+                </View> */}
 
-                <Pressable style={styles.calculate} onPress={() => console.log('a')}>
+                <Pressable style={styles.calculate} onPress={() => console.log(semesters)}>
                     Calculate
                 </Pressable>
-                <View style={styles.result}>
-                    <View>
-                        <Text>Units Total</Text>
-                        <Text>144</Text>
-                    </View>
-                    <View>
-                        <Text>GPA</Text>
-                        <Text>3</Text>
-                    </View>
-                </View>
             </ScrollView>
-            <View style={styles.result}>
-                <View>
+            {/* <View style={styles.result}>
+                <View style={{ justifyContent: 'space-between' }}>
                     <Text>Units Total</Text>
                     <Text>144</Text>
                 </View>
-                <View>
+                <View style={{ justifyContent: 'space-between' }}>
                     <Text>GPA</Text>
-                    <Text>3</Text>
+                    <ThemedText type="subtitle">3</ThemedText>
                 </View>
-            </View>
+            </View> */}
         </SafeAreaView>
     );
 }
@@ -111,7 +196,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         paddingHorizontal: "5%",
         flex: 1,
-        minHeight: '100vh'
     },
     header: {
         backgroundColor: 'orange',
@@ -130,7 +214,8 @@ const styles = StyleSheet.create({
         maxHeight: 20,
         cursor: 'pointer',
         padding: 5,
-        lineHeight: 0
+        lineHeight: 20,
+        textAlign: 'center',
     },
     semester: {
         flexDirection: 'row',
@@ -192,6 +277,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         left: 0,
-        right: 0
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderTopWidth: 1,
+        paddingVertical: 20,
+        paddingHorizontal: 20,
+        height: 100,
     }
 });
