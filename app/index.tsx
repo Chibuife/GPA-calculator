@@ -1,5 +1,4 @@
 import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, TextInput, Pressable, useWindowDimensions } from 'react-native';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
@@ -15,58 +14,125 @@ const grade = [
 
 const units = [3, 2, 1]
 export default function HomeScreen() {
-    const [selectedGrade, setSelectedGrade] = useState("placeholder");
-    const [selectedUnits, setSelectedUnits] = useState("placeholder");
-    const [semesters, setSemesters] = useState([]);
-    const [subject, setSubject] = useState()
-    const { height } = useWindowDimensions()
-    console.log(semesters)
+    type Subject = {
+        course: string;
+        grade: string;
+        unit: string;
+    };
+
+    type Semester = {
+        id: number;
+        subjects: Subject[];
+    };
+    const [semesters, setSemesters] = useState<Semester[]>([]);
+    const [gpa, setgpa] = useState(0)
+    const [unit, setUnit] = useState(0)
+    const calculateResult = () => {
+        semesters.map((item,index)=>{
+            item.subjects.map((subject,subindex)=>{
+                console.log(subject)
+                if(subject.course ===""||subject.grade===""||subject.unit==="") return alert(`Please make sure to update semester ${item.id} course ${subject.course}  grades and units `)
+                if(subject.grade === "A"){
+                    const gp = 5 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }else if(subject.grade === "B"){
+                    const gp = 4 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }else if(subject.grade === "C"){
+                    const gp = 3 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }else if(subject.grade === "D"){
+                    const gp = 2 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }else if(subject.grade === "E"){
+                    const gp = 1 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }else if(subject.grade === "F"){
+                    const gp = 0 * parseInt(subject.unit)
+                    setgpa(gpa + gp)
+                    setUnit(unit + parseInt(subject.unit))
+                }
+            })
+        })
+    }
     return (
         <SafeAreaView style={{
-            // minHeight:height, 
             flex: 1,
         }} >
             <View style={styles.header}>
                 <ThemedText style={styles.headerText} type="subtitle">GPA Calculator</ThemedText>
             </View>
             <ScrollView style={styles.body}>
-                <TextInput placeholder='Course Name'
-                    value={subject}
-                    onChangeText={(e) => setSubject(subject)}
-                    style={styles.course} />
                 {
                     semesters.map((item, index) => {
                         return (
-                            <>
-                                <View style={styles.semester}>
-                                    <View style={styles.circleBtn}><Text>-</Text></View>
-                                    <ThemedText type="defaultSemiBold">Semester {item.id}</ThemedText>
+                            <View>
+                                <View >
+                                    <Pressable style={styles.semester} onPress={() => {
+                                        const updatedSemesters = semesters.filter((_, semIndex) => index !== semIndex)
+                                        setSemesters(updatedSemesters)
+                                    }}>
+                                        <View style={styles.circleBtn}><Text>-</Text></View>
+                                        <ThemedText type="defaultSemiBold">Semester {item.id}</ThemedText>
+                                    </Pressable>
                                 </View>
-                                {/* <TextInput placeholder='Course Name'
-                                    value={subject.course}
-                                    // onChangeText={(e) =>subject.course = e}
-                                    onChangeText={(e) => [...semesters][index].subjects[subjectindex].course = e}
-
-                                    style={styles.course} /> */}
                                 {
-                                    item.subjects.map((subject, subjectindex) => {
-
+                                    item.subjects.map((subject, subindex) => {
                                         return (
                                             <View style={styles.inputContainer}>
                                                 <View style={styles.input}>
                                                     <TextInput placeholder='Course Name'
                                                         value={subject.course}
-                                                        // onChangeText={(e) =>setSemesters([...semesters,{ id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])}
-                                                        // onChangeText={(e) => [...semesters][index].subjects[subjectindex].course = e}
-                                                        // onChangeText={(e) => subject.course = e}
-                                                        onChangeText={(e) =>setSemesters([...semesters,{ id: index, subjects: [{ course: e, grade: '', unit: '' }] }])}
+                                                        onChangeText={(e) => {
+                                                            const updatedSemesters = semesters.map((semester, semesterIndex) => {
+                                                                if (semesterIndex === index) { // Replace `index` with `semesterIndex`
+                                                                    return {
+                                                                        ...semester,
+                                                                        subjects: semester.subjects.map((subject, subjectIndex) => {
+                                                                            if (subjectIndex === subindex) { // Ensure you use the correct `subjectIndex`
+                                                                                return {
+                                                                                    ...subject,
+                                                                                    course: e, // Update only the `course` field
+                                                                                };
+                                                                            }
+                                                                            return subject; // Retain other subjects unchanged
+                                                                        }),
+                                                                    };
+                                                                }
+                                                                return semester; // Retain other semesters unchanged
+                                                            });
+                                                            setSemesters(updatedSemesters);
 
+                                                        }}
                                                         style={styles.course} />
                                                     <View style={styles.gradeUnitContainer}>
                                                         <Picker
-                                                            selectedValue={selectedGrade}
-                                                            // onValueChange={(itemValue) => [...semesters][index].subjects[subjectindex].grade = itemValue}
-                                                            onValueChange={(itemValue) => [...semesters][index].subjects[subjectindex].grade = itemValue}
+                                                            selectedValue={subject.grade}
+                                                            onValueChange={(itemValue) => {
+                                                                const updatedSemesters = semesters.map((semester, semesterIndex) => {
+                                                                    if (semesterIndex === index) { // Replace `index` with `semesterIndex`
+                                                                        return {
+                                                                            ...semester,
+                                                                            subjects: semester.subjects.map((subject, subjectIndex) => {
+                                                                                if (subjectIndex === subindex) { // Ensure you use the correct `subjectIndex`
+                                                                                    return {
+                                                                                        ...subject,
+                                                                                        grade: itemValue, // Update only the `grade` field
+                                                                                    };
+                                                                                }
+                                                                                return subject; // Retain other subjects unchanged
+                                                                            }),
+                                                                        };
+                                                                    }
+                                                                    return semester; // Retain other semesters unchanged
+                                                                });
+                                                                setSemesters(updatedSemesters);
+                                                            }}
 
                                                             style={[styles.picker, styles.gradePicker]}
                                                         >
@@ -80,14 +146,34 @@ export default function HomeScreen() {
                                                         </Picker>
 
                                                         <Picker
-                                                            selectedValue={selectedUnits}
-                                                            onValueChange={(itemValue) => setSelectedUnits(itemValue)}
+                                                            selectedValue={subject.unit}
+                                                            onValueChange={(itemValue) => {
+                                                                const updatedSemesters = semesters.map((semester, semesterIndex) => {
+                                                                    if (semesterIndex === index) { // Replace `index` with `semesterIndex`
+                                                                        console.log(subject)
+                                                                        return {
+                                                                            ...semester,
+                                                                            subjects: semester.subjects.map((subject, subjectIndex) => {
+                                                                                if (subjectIndex === subindex) { // Ensure you use the correct `subjectIndex`
+                                                                                    return {
+                                                                                        ...subject,
+                                                                                        unit: itemValue, // Update only the `unit` field
+                                                                                    };
+                                                                                }
+                                                                                return subject; // Retain other subjects unchanged
+                                                                            }),
+                                                                        };
+                                                                    }
+                                                                    return semester; // Retain other semesters unchanged
+                                                                });
+                                                                setSemesters(updatedSemesters);
+                                                            }}
                                                             style={styles.picker}
                                                         >
                                                             <Picker.Item
                                                                 label="Units"
                                                                 enabled={false}
-                                                                value="placeholder" />
+                                                                value="" />
                                                             {units.map((unit) => (
                                                                 <Picker.Item key={unit} label={`${unit}`} value={unit} />
                                                             ))}
@@ -95,8 +181,17 @@ export default function HomeScreen() {
                                                     </View>
                                                 </View>
                                                 <Pressable onPress={() => {
-                                                    console.log([...semesters][index].subjects[subjectindex].course, 'course')
-                                                    console.log(subject.course, 'cour')
+                                                    const updatedSemesters = semesters.map((semester, semindex) => {
+                                                        if (index === semindex) {
+                                                            return {
+                                                                ...semester,
+                                                                subjects: semester.subjects.filter((_, subjectIndex) => subjectIndex !== subindex), // Remove the subject
+                                                            };
+                                                        }
+                                                        return semester; // Keep other semesters unchanged
+                                                    });
+
+                                                    setSemesters(updatedSemesters);
                                                 }} style={styles.circleBtn}>
                                                     <Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>x</Text>
                                                 </Pressable>
@@ -106,87 +201,51 @@ export default function HomeScreen() {
                                 }
 
 
-                                <View style={styles.addCourseContainer}>
-                                    <View style={styles.circleBtn}><Text>+</Text></View><Text>Add Course</Text>
-                                </View>
+                                <Pressable onPress={() => {
+                                    const updatedSemesters = semesters.map((semester, semindex) => {
+                                        if (index === semindex) {
+                                            return {
+                                                ...semester,
+                                                subjects: [
+                                                    ...semester.subjects,
+                                                    { course: '', grade: '', unit: '' }, // Add a new subject with default values
+                                                ],
+                                            };
+                                        }
+                                        return semester; // Keep other semesters unchanged
+                                    });
 
-
-                            </>
+                                    setSemesters(updatedSemesters);
+                                }} >
+                                    <View style={styles.addCourseContainer}>
+                                        <View style={styles.circleBtn}><Text>+</Text></View><Text>Add Course</Text>
+                                    </View>
+                                </Pressable>
+                            </View>
                         )
                     })
                 }
                 <View style={styles.semester}>
-                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>+</Text></View>
+                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -2, textAlign: 'center' }}>+</Text></View>
                     <Pressable onPress={() => setSemesters([...semesters, { id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])}>
                         <ThemedText type="defaultSemiBold">Add Semester</ThemedText>
                     </Pressable>
                 </View>
-                {/* <View style={styles.semester}>
-                    <View style={styles.circleBtn}><Text>-</Text></View>
-                    <ThemedText type="defaultSemiBold">Semester 1</ThemedText>
-                </View> */}
 
-                {/* <View style={styles.inputContainer}>
-                    <View style={styles.input}>
-                        <TextInput placeholder='Course Name' style={styles.course} />
-                        <View style={styles.gradeUnitContainer}>
-                            <Picker
-                                selectedValue={selectedGrade}
-                                onValueChange={(itemValue) => setSelectedGrade(itemValue)}
-                                style={[styles.picker, styles.gradePicker]}
-                            >
-                                <Picker.Item
-                                    label="Grade"
-                                    enabled={false}
-                                    value="placeholder" />
-                                {grade.map((gradeOption) => (
-                                    <Picker.Item key={gradeOption.mark} label={gradeOption.mark} value={gradeOption.mark} />
-                                ))}
-                            </Picker>
-
-                            <Picker
-                                selectedValue={selectedUnits}
-                                onValueChange={(itemValue) => setSelectedUnits(itemValue)}
-                                style={styles.picker}
-                            >
-                                <Picker.Item
-                                    label="Units"
-                                    enabled={false}
-                                    value="placeholder" />
-                                {units.map((unit) => (
-                                    <Picker.Item key={unit} label={`${unit}`} value={unit} />
-                                ))}
-                            </Picker>
-                        </View>
-                    </View>
-                    <View style={styles.circleBtn}>
-                        <Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>x</Text>
-                    </View>
-                </View>
-
-                <View style={styles.addCourseContainer}>
-                    <View style={styles.circleBtn}><Text>+</Text></View><Text>Add Course</Text>
-                </View>
-
-                <View style={styles.semester}>
-                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -1, textAlign: 'center' }}>+</Text></View>
-                    <ThemedText type="defaultSemiBold">Add Semester</ThemedText>
-                </View> */}
-
-                <Pressable style={styles.calculate} onPress={() => console.log(semesters)}>
+                <Pressable style={styles.calculate} onPress={() => calculateResult()}>
                     Calculate
                 </Pressable>
-            </ScrollView>
-            {/* <View style={styles.result}>
+            </ScrollView >
+            <View style={styles.result}>
                 <View style={{ justifyContent: 'space-between' }}>
                     <Text>Units Total</Text>
-                    <Text>144</Text>
+                    <Text>{unit}</Text>
                 </View>
                 <View style={{ justifyContent: 'space-between' }}>
                     <Text>GPA</Text>
-                    <ThemedText type="subtitle">3</ThemedText>
+                    <ThemedText type="subtitle">{gpa/unit}</ThemedText>
                 </View>
-            </View> */}
+            </View>
         </SafeAreaView>
     );
 }
@@ -196,6 +255,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         paddingHorizontal: "5%",
         flex: 1,
+        marginBottom: 100,
     },
     header: {
         backgroundColor: 'orange',
@@ -284,5 +344,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingHorizontal: 20,
         height: 100,
+        backgroundColor: 'white',
+        borderColor: 'rgb(0 0 0 / 46%)'
     }
 });
