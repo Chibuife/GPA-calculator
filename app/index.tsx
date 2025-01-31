@@ -1,8 +1,10 @@
-import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, TextInput, Pressable, useWindowDimensions } from 'react-native';
+import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, TextInput, Pressable, useWindowDimensions, TouchableOpacity, Button, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const grade = [
     { mark: 'A', points: 5 },
     { mark: 'B', points: 4 },
@@ -27,38 +29,62 @@ export default function HomeScreen() {
     const [semesters, setSemesters] = useState<Semester[]>([]);
     const [gpa, setgpa] = useState(0)
     const [unit, setUnit] = useState(0)
+    const saveData = async () => {
+        try {
+            await AsyncStorage.setItem('@userGPA', JSON.stringify(semesters));
+            console.log('Data saved successfully');
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+    };
+
+    const getArray = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem('@userGPA');
+            if (jsonValue !== null) {
+                const courses = JSON.parse(jsonValue); // Convert back to an array
+                console.log('Retrieved Array:', courses);
+                setSemesters(courses)
+            } else {
+                console.log('No data found');
+            }
+        } catch (error) {
+            console.error('Error retrieving array:', error);
+        }
+    };
     const calculateResult = () => {
-        semesters.map((item,index)=>{
-            item.subjects.map((subject,subindex)=>{
-                console.log(subject)
-                if(subject.course ===""||subject.grade===""||subject.unit==="") return alert(`Please make sure to update semester ${item.id} course ${subject.course}  grades and units `)
-                if(subject.grade === "A"){
+        semesters.map((item, index) => {
+            item.subjects.map((subject, subindex) => {
+                console.log('subject')
+                if (subject.course === "" || subject.grade === "" || subject.unit === "") return alert(`Please make sure to update semester ${item.id} course ${subject.course}  grades and units `)
+                if (subject.grade === "A") {
                     const gp = 5 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
-                }else if(subject.grade === "B"){
+                } else if (subject.grade === "B") {
                     const gp = 4 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
-                }else if(subject.grade === "C"){
+                } else if (subject.grade === "C") {
                     const gp = 3 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
-                }else if(subject.grade === "D"){
+                } else if (subject.grade === "D") {
                     const gp = 2 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
-                }else if(subject.grade === "E"){
+                } else if (subject.grade === "E") {
                     const gp = 1 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
-                }else if(subject.grade === "F"){
+                } else if (subject.grade === "F") {
                     const gp = 0 * parseInt(subject.unit)
                     setgpa(gpa + gp)
                     setUnit(unit + parseInt(subject.unit))
                 }
             })
         })
+        saveData()
     }
     return (
         <SafeAreaView style={{
@@ -71,7 +97,7 @@ export default function HomeScreen() {
                 {
                     semesters.map((item, index) => {
                         return (
-                            <View>
+                            <View key={index}>
                                 <View >
                                     <Pressable style={styles.semester} onPress={() => {
                                         const updatedSemesters = semesters.filter((_, semIndex) => index !== semIndex)
@@ -84,9 +110,11 @@ export default function HomeScreen() {
                                 {
                                     item.subjects.map((subject, subindex) => {
                                         return (
-                                            <View style={styles.inputContainer}>
+                                            <View style={styles.inputContainer} key={subindex}>
                                                 <View style={styles.input}>
-                                                    <TextInput placeholder='Course Name'
+                                                    <TextInput
+                                                        placeholder='Course Name'
+                                                        accessibilityLabel="Course Name"
                                                         value={subject.course}
                                                         onChangeText={(e) => {
                                                             const updatedSemesters = semesters.map((semester, semesterIndex) => {
@@ -133,13 +161,14 @@ export default function HomeScreen() {
                                                                 });
                                                                 setSemesters(updatedSemesters);
                                                             }}
-
+                                                            accessibilityLabel="Grade"
+                                                            placeholder='Grade'
                                                             style={[styles.picker, styles.gradePicker]}
                                                         >
-                                                            <Picker.Item
+                                                            {/* <Picker.Item
                                                                 label="Grade"
                                                                 enabled={false}
-                                                                value="" />
+                                                                value="" /> */}
                                                             {grade.map((gradeOption) => (
                                                                 <Picker.Item key={gradeOption.mark} label={gradeOption.mark} value={gradeOption.mark} />
                                                             ))}
@@ -168,6 +197,8 @@ export default function HomeScreen() {
                                                                 });
                                                                 setSemesters(updatedSemesters);
                                                             }}
+                                                            accessibilityLabel="Units"
+                                                            placeholder='Units'
                                                             style={styles.picker}
                                                         >
                                                             <Picker.Item
@@ -225,15 +256,17 @@ export default function HomeScreen() {
                         )
                     })
                 }
-                <View style={styles.semester}>
-                    <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -2, textAlign: 'center' }}>+</Text></View>
-                    <Pressable onPress={() => setSemesters([...semesters, { id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])}>
+                <TouchableOpacity onPress={() => {
+                    setSemesters([...semesters, { id: semesters.length + 1, subjects: [{ course: '', grade: '', unit: '' }] }])
+                }}>
+                    <View style={styles.semester}>
+                        <View style={styles.circleBtn}><Text style={{ fontSize: 12, lineHeight: 18, marginTop: -2, textAlign: 'center' }}>+</Text></View>
                         <ThemedText type="defaultSemiBold">Add Semester</ThemedText>
-                    </Pressable>
-                </View>
+                    </View>
+                </TouchableOpacity>
 
                 <Pressable style={styles.calculate} onPress={() => calculateResult()}>
-                    Calculate
+                    <Text style={{ color: 'white' }}>Calculate</Text>
                 </Pressable>
             </ScrollView >
             <View style={styles.result}>
@@ -243,7 +276,7 @@ export default function HomeScreen() {
                 </View>
                 <View style={{ justifyContent: 'space-between' }}>
                     <Text>GPA</Text>
-                    <ThemedText type="subtitle">{gpa/unit}</ThemedText>
+                    <ThemedText type="subtitle">{gpa > 0 ? gpa / unit : 0}</ThemedText>
                 </View>
             </View>
         </SafeAreaView>
@@ -270,12 +303,13 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        maxWidth: 20,
-        maxHeight: 20,
+        minWidth: 30,
+        height: 30,
         cursor: 'pointer',
         padding: 5,
         lineHeight: 20,
         textAlign: 'center',
+
     },
     semester: {
         flexDirection: 'row',
