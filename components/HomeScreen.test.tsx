@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import HomeScreen from '../app/index';
 
-import HomeScreen from '.';
 
 
 describe('HomeScreen Component', () => {
     const renderComponent = () => render(
-                <HomeScreen />
-        );
+        <HomeScreen />
+    );
 
-    test('renders correctly', async() => {
-        const { getByText,debug } = renderComponent();
-        // debug()
+    test('renders correctly', async () => {
+        const { getByText, debug } = renderComponent();
+        debug()
         expect(getByText('GPA Calculator')).toBeTruthy();
         expect(getByText('Calculate')).toBeTruthy();
     });
@@ -30,7 +30,6 @@ describe('HomeScreen Component', () => {
         const { getByText, getByLabelText } = renderComponent();
 
         fireEvent.press(getByText('Add Semester'));
-        // fireEvent.press(getByText('Add Course'));
 
         expect(getByLabelText('Course Name')).toBeTruthy();
         expect(getByLabelText('Grade')).toBeTruthy();

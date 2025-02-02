@@ -2,7 +2,7 @@ import { Image, StyleSheet, Platform, SafeAreaView, ScrollView, View, Text, Text
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const grade = [
@@ -52,7 +52,11 @@ export default function HomeScreen() {
             console.error('Error retrieving array:', error);
         }
     };
+    useEffect(()=>{
+        getArray()
+    },[])
     const calculateResult = () => {
+        getArray()
         semesters.map((item, index) => {
             item.subjects.map((subject, subindex) => {
                 console.log('subject')
@@ -318,9 +322,7 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     course: {
-
         padding: 5,
-        outline: 'none',
     },
     gradeUnitContainer: {
         flexDirection: 'row',
